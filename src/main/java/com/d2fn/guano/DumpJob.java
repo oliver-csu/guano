@@ -8,6 +8,7 @@ import org.apache.zookeeper.data.Stat;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,6 +20,10 @@ public class DumpJob implements Job, Watcher {
     private String zkServer;
     private String outputDir;
     private String znode;
+
+    public static final String OP_AUTH_ID = "write:plantsvszombie";
+
+    public static final String RD_AUTH_ID = "read:sodies";
 
     public DumpJob(String zkServer, String outputDir, String znode) {
         this.zkServer = zkServer;
@@ -34,6 +39,7 @@ public class DumpJob implements Job, Watcher {
 
         try {
             ZooKeeper zk = new ZooKeeper(zkServer + znode, 10000, this);
+            zk.addAuthInfo("digest", RD_AUTH_ID.getBytes());
             go(zk);
         } catch (IOException e) {
             System.err.println("error connecting to " + zkServer);
@@ -49,7 +55,7 @@ public class DumpJob implements Job, Watcher {
             }
             dumpChild(zk, outputDir + znode, "", "");
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -60,7 +66,12 @@ public class DumpJob implements Job, Watcher {
         System.out.println("znodePath: " + znodePath);
         System.out.println("outputPath: " + outputPath);
         String currznode = znodePath.length() == 0 ? "/" : znodePath;
-        List<String> children = zk.getChildren(currznode, false);
+        List<String> children = new ArrayList<String>();
+        try {
+            children = zk.getChildren(currznode, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         if(!children.isEmpty()) {
 
             // ensure parent dir is created
@@ -82,7 +93,12 @@ public class DumpJob implements Job, Watcher {
 
     private void writeZnode(ZooKeeper zk, String outFile, String znode) throws Exception {
         Stat stat = new Stat();
-        byte[] data = zk.getData(znode, false, stat);
+        byte[] data = null;
+        try {
+            data = zk.getData(znode, false, stat);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         if(data != null && data.length > 0 && stat.getEphemeralOwner() == 0) {
             String str = new String(data);
             if(!str.equals("null")) {

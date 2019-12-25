@@ -55,14 +55,15 @@ public class RestoreJob implements Job, Watcher, FSVisitor {
      */
     @Override
     public void visit(File f, byte[] data, String znode) {
-//        System.out.println(f.getPath());
-//        System.out.println(" -> " + znode);
+        System.out.println(f.getPath());
+        System.out.println(" -> " + znode);
         createOrSetZnode(data, znode);
     }
 
     private void createOrSetZnode(byte[] data, String znode) {
         try {
             String s = zk.create(znode, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            Thread.sleep(50);
         } catch (KeeperException.NoNodeException e) {
             e.printStackTrace(System.err);
         } catch (KeeperException.NodeExistsException e) {

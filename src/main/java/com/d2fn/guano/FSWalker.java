@@ -20,6 +20,8 @@ public class FSWalker {
 
     public void go(FSVisitor visitor) {
         File f = new File(localRoot);
+        System.out.println("znodeRoot: " + this.znodeRoot);
+        System.out.println("localRoot: " + this.localRoot);
         walk(visitor, f, znodeRoot);
     }
 
