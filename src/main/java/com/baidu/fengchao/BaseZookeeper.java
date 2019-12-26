@@ -14,7 +14,7 @@ import java.util.concurrent.CountDownLatch;
 public class BaseZookeeper implements Watcher {
 
     private ZooKeeper zookeeper;
-    private static final int SESSION_TIME_OUT = 2000 * 1000 * 1000;
+    private static final int SESSION_TIME_OUT = 1000 * 1000 * 1000 * 1000;
     public static final String OP_AUTH_ID = "write:plantsvszombie";
     private CountDownLatch countDownLatch = new CountDownLatch(1);
 

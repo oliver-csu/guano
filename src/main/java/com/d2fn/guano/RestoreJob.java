@@ -13,6 +13,8 @@ import java.util.Arrays;
  */
 public class RestoreJob implements Job, Watcher, FSVisitor {
 
+    private static final int SESSION_TIME_OUT = 1000 * 1000 * 1000 * 1000;
+
     private String zkServer;
     private String znode;
     private String inputDir;
@@ -32,7 +34,7 @@ public class RestoreJob implements Job, Watcher, FSVisitor {
         System.out.println("restoring to zookeeper path: " + znode);
 
         try {
-            zk = new ZooKeeper(zkServer + znode, 10000, this);
+            zk = new ZooKeeper(zkServer + znode, SESSION_TIME_OUT, this);
             while(!zk.getState().isConnected()) {
                 System.out.println("connecting to " + zkServer + " with chroot " + znode);
                 Thread.sleep(1000L);
@@ -54,13 +56,18 @@ public class RestoreJob implements Job, Watcher, FSVisitor {
      * @param znode
      */
     @Override
-    public void visit(File f, byte[] data, String znode) {
+    public void visit(File f, byte[] data, String znode) throws Exception {
         System.out.println(f.getPath());
         System.out.println(" -> " + znode);
         createOrSetZnode(data, znode);
     }
 
-    private void createOrSetZnode(byte[] data, String znode) {
+    private void createOrSetZnode(byte[] data, String znode) throws Exception {
+        while(!zk.getState().isConnected()) {
+            System.out.println("connecting to " + zkServer + " with chroot " + znode);
+            Thread.sleep(1000L);
+            zk = new ZooKeeper(zkServer + znode, SESSION_TIME_OUT, this);
+        }
         try {
             String s = zk.create(znode, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             Thread.sleep(50);

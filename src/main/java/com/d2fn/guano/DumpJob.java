@@ -21,6 +21,8 @@ public class DumpJob implements Job, Watcher {
     private String outputDir;
     private String znode;
 
+    private static final int SESSION_TIME_OUT = 1000 * 1000 * 1000 * 1000;
+
     public static final String OP_AUTH_ID = "write:plantsvszombie";
 
     public static final String RD_AUTH_ID = "read:sodies";
@@ -38,7 +40,7 @@ public class DumpJob implements Job, Watcher {
         System.out.println("dumping to local directory: " + outputDir);
 
         try {
-            ZooKeeper zk = new ZooKeeper(zkServer + znode, 10000, this);
+            ZooKeeper zk = new ZooKeeper(zkServer + znode, SESSION_TIME_OUT, this);
             zk.addAuthInfo("digest", RD_AUTH_ID.getBytes());
             go(zk);
         } catch (IOException e) {
