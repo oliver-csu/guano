@@ -17,6 +17,8 @@ public class RestoreJob implements Job, Watcher, FSVisitor {
     private String znode;
     private String inputDir;
 
+    private static final int SESSION_TIME_OUT = 2000 * 1000 * 1000;
+
     private ZooKeeper zk;
 
     public RestoreJob(String zkServer, String znode, String inputDir) {
@@ -32,7 +34,7 @@ public class RestoreJob implements Job, Watcher, FSVisitor {
         System.out.println("restoring to zookeeper path: " + znode);
 
         try {
-            zk = new ZooKeeper(zkServer + znode, 10000, this);
+            zk = new ZooKeeper(zkServer + znode, SESSION_TIME_OUT, this);
             while(!zk.getState().isConnected()) {
                 System.out.println("connecting to " + zkServer + " with chroot " + znode);
                 Thread.sleep(1000L);
