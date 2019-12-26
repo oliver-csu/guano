@@ -56,17 +56,21 @@ public class RestoreJob implements Job, Watcher, FSVisitor {
      * @param znode
      */
     @Override
-    public void visit(File f, byte[] data, String znode) throws Exception {
+    public void visit(File f, byte[] data, String znode) {
         System.out.println(f.getPath());
         System.out.println(" -> " + znode);
         createOrSetZnode(data, znode);
     }
 
-    private void createOrSetZnode(byte[] data, String znode) throws Exception {
+    private void createOrSetZnode(byte[] data, String znode) {
         while(!zk.getState().isConnected()) {
             System.out.println("connecting to " + zkServer + " with chroot " + znode);
-            Thread.sleep(1000L);
-            zk = new ZooKeeper(zkServer + znode, SESSION_TIME_OUT, this);
+            try {
+                Thread.sleep(1000L);
+                zk = new ZooKeeper(zkServer + znode, SESSION_TIME_OUT, this);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         try {
             String s = zk.create(znode, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
